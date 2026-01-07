@@ -1,0 +1,1286 @@
+{% extends "base.html" %}
+
+{% block title %}Face Verification | Retrace AI{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ================= VERIFICATION PAGE ================= */
+.verification-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: var(--space-2xl);
+}
+
+.page-title {
+    font-size: 2.8rem;
+    font-weight: 800;
+    margin-bottom: var(--space-sm);
+    font-family: var(--font-heading);
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.page-subtitle {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+/* ================= UPLOAD SECTION ================= */
+.upload-section {
+    margin-bottom: var(--space-2xl);
+}
+
+.upload-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: var(--space-xl);
+    margin-bottom: var(--space-xl);
+}
+
+.upload-card {
+    background: var(--card);
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-2xl);
+    text-align: center;
+    transition: all var(--transition);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.upload-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+.upload-card.dragover {
+    border-color: var(--primary);
+    background: rgba(139, 92, 246, 0.08);
+}
+
+.upload-card input {
+    display: none;
+}
+
+.upload-icon {
+    font-size: 3rem;
+    color: var(--primary);
+    margin-bottom: var(--space-lg);
+    display: inline-block;
+    animation: float 3s ease-in-out infinite;
+}
+
+.upload-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: var(--space-sm);
+    color: var(--text-main);
+    font-family: var(--font-heading);
+}
+
+.upload-subtitle {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    margin-bottom: var(--space-lg);
+    line-height: 1.6;
+}
+
+.upload-requirements {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    margin-top: var(--space-md);
+}
+
+.file-info {
+    margin-top: var(--space-lg);
+    padding: var(--space-md);
+    background: var(--bg);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+}
+
+.file-name {
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: var(--space-xs);
+    word-break: break-word;
+}
+
+.file-size {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.preview-container {
+    margin-top: var(--space-lg);
+    border-radius: var(--radius);
+    overflow: hidden;
+    position: relative;
+    background: var(--bg);
+    border: 1px solid var(--border);
+}
+
+.preview-image {
+    width: 100%;
+    height: 280px;
+    object-fit: contain;
+    background: var(--bg);
+    display: block;
+}
+
+.preview-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity var(--transition);
+}
+
+.upload-card:hover .preview-overlay {
+    opacity: 1;
+}
+
+/* ================= ACTION BUTTONS ================= */
+.action-buttons {
+    display: flex;
+    gap: var(--space-md);
+    justify-content: center;
+    margin-top: var(--space-xl);
+}
+
+.verify-btn {
+    min-width: 200px;
+    padding: var(--space-lg) var(--space-2xl);
+    font-size: 1.1rem;
+    border-radius: var(--radius);
+    position: relative;
+    overflow: hidden;
+}
+
+.verify-btn.loading .btn-text {
+    opacity: 0;
+}
+
+.verify-btn.loading::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 24px;
+    height: 24px;
+    margin-left: -12px;
+    margin-top: -12px;
+    border: 3px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* ================= RESULTS SECTION ================= */
+.results-section {
+    margin-top: var(--space-3xl);
+}
+
+.results-card {
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    padding: var(--space-2xl);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border);
+    animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.result-header {
+    text-align: center;
+    margin-bottom: var(--space-xl);
+    padding-bottom: var(--space-lg);
+    border-bottom: 1px solid var(--border);
+}
+
+.result-title {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: var(--space-sm);
+    font-family: var(--font-heading);
+    color: var(--text-main);
+}
+
+.result-subtitle {
+    color: var(--text-muted);
+    font-size: 1rem;
+}
+
+/* ================= CONFIDENCE DISPLAY ================= */
+.confidence-display {
+    text-align: center;
+    margin: var(--space-xl) 0;
+}
+
+.confidence-score {
+    font-size: 4rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: var(--space-sm);
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.confidence-label {
+    font-size: 1.2rem;
+    color: var(--text-muted);
+    margin-bottom: var(--space-lg);
+}
+
+.confidence-meter {
+    height: 12px;
+    background: var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    margin: var(--space-lg) auto;
+    max-width: 400px;
+}
+
+.confidence-fill {
+    height: 100%;
+    background: var(--primary-gradient);
+    border-radius: 6px;
+    width: 0%;
+    transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.confidence-steps {
+    display: flex;
+    justify-content: space-between;
+    max-width: 400px;
+    margin: var(--space-md) auto;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+/* ================= COMPARISON DISPLAY ================= */
+.comparison-display {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--space-2xl);
+    margin: var(--space-2xl) 0;
+}
+
+.comparison-item {
+    text-align: center;
+}
+
+.comparison-image {
+    width: 100%;
+    max-width: 320px;
+    height: 280px;
+    object-fit: cover;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    margin-bottom: var(--space-md);
+}
+
+.comparison-label {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: var(--space-xs);
+}
+
+.comparison-subtitle {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.comparison-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    font-size: 2rem;
+    animation: pulse 2s infinite;
+}
+
+/* ================= METRICS GRID ================= */
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-lg);
+    margin: var(--space-2xl) 0;
+    padding: var(--space-xl);
+    background: var(--bg);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+}
+
+.metric-item {
+    text-align: center;
+    padding: var(--space-lg);
+    background: var(--card);
+    border-radius: var(--radius);
+    transition: all var(--transition);
+}
+
+.metric-item:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow);
+}
+
+.metric-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: var(--space-xs);
+    color: var(--primary);
+}
+
+.metric-label {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.metric-description {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    margin-top: var(--space-sm);
+}
+
+/* ================= DECISION BADGE ================= */
+.decision-display {
+    text-align: center;
+    margin: var(--space-xl) 0;
+    padding: var(--space-lg);
+    background: var(--bg);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+}
+
+.decision-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-md) var(--space-xl);
+    border-radius: 50px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    animation: pulse 2s infinite;
+}
+
+.decision-badge.match {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--success);
+    border: 2px solid var(--success);
+}
+
+.decision-badge.no-match {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--error);
+    border: 2px solid var(--error);
+}
+
+.decision-badge.likely {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+    border: 2px solid #3b82f6;
+}
+
+.decision-badge.uncertain {
+    background: rgba(251, 191, 36, 0.15);
+    color: #f59e0b;
+    border: 2px solid #f59e0b;
+}
+
+.decision-badge.unusable {
+    background: rgba(239, 68, 68, 0.15);
+    color: #dc2626;
+    border: 2px solid #dc2626;
+}
+
+/* ================= ATTENTION ALERT MESSAGES ================= */
+.attention-alert {
+    margin-top: var(--space-lg);
+    padding: var(--space-xl);
+    border-radius: var(--radius-lg);
+    border-left: 5px solid;
+    font-weight: 600;
+    text-align: center;
+    animation: alertPulse 2s ease-in-out infinite;
+    position: relative;
+    overflow: hidden;
+}
+
+.attention-alert::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+    animation: shimmer 2s infinite;
+}
+
+.attention-alert-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-md);
+}
+
+.attention-alert.info {
+    background: rgba(59, 130, 246, 0.15);
+    border-color: #3b82f6;
+    color: #1e40af;
+}
+
+@keyframes alertPulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: 100%;
+    }
+}
+
+/* ================= NEURAL NETWORK VISUALIZATION ================= */
+.neural-viz {
+    margin: var(--space-2xl) 0;
+    padding: var(--space-xl);
+    background: linear-gradient(135deg, var(--card) 0%, var(--secondary-bg) 100%);
+    border-radius: var(--radius-lg);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+}
+
+.neural-title {
+    text-align: center;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: var(--space-lg);
+    color: var(--text-main);
+    font-family: var(--font-heading);
+}
+
+.neural-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-lg);
+    margin-top: var(--space-lg);
+}
+
+.neural-item {
+    text-align: center;
+    padding: var(--space-lg);
+    background: var(--card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    transition: all var(--transition);
+}
+
+.neural-item:hover {
+    background: var(--secondary-bg);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-sm);
+}
+
+.neural-icon {
+    font-size: 2rem;
+    margin-bottom: var(--space-md);
+    color: var(--primary);
+}
+
+.neural-name {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: var(--space-xs);
+    color: var(--text-main);
+}
+
+.neural-description {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+/* ================= ETHICAL NOTICE ================= */
+.ethical-notice {
+    margin-top: var(--space-2xl);
+    padding: var(--space-xl);
+    background: rgba(14, 165, 233, 0.08);
+    border-left: 4px solid var(--info);
+    border-radius: var(--radius);
+}
+
+.ethical-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: var(--space-md);
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.ethical-content {
+    color: var(--text-muted);
+    line-height: 1.7;
+    font-size: 0.95rem;
+}
+
+.ethical-content ul {
+    margin: var(--space-md) 0;
+    padding-left: var(--space-lg);
+}
+
+.ethical-content li {
+    margin-bottom: var(--space-xs);
+}
+
+/* ================= EMPTY STATE ================= */
+.empty-state {
+    text-align: center;
+    padding: var(--space-3xl);
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    border: 2px dashed var(--border);
+    margin: var(--space-2xl) 0;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    color: var(--primary);
+    margin-bottom: var(--space-lg);
+    opacity: 0.5;
+    animation: float 3s ease-in-out infinite;
+}
+
+.empty-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: var(--space-md);
+    color: var(--text-main);
+}
+
+.empty-description {
+    color: var(--text-muted);
+    max-width: 500px;
+    margin: 0 auto;
+    line-height: 1.7;
+    font-size: 1rem;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 1024px) {
+    .upload-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .comparison-display {
+        grid-template-columns: 1fr;
+    }
+    
+    .comparison-arrow {
+        transform: rotate(90deg);
+        margin: var(--space-lg) 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .page-title {
+        font-size: 2.2rem;
+    }
+    
+    .upload-card {
+        padding: var(--space-xl);
+    }
+    
+    .confidence-score {
+        font-size: 3rem;
+    }
+    
+    .metrics-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .verify-btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-title {
+        font-size: 1.8rem;
+    }
+    
+    .results-card {
+        padding: var(--space-lg);
+    }
+    
+    .comparison-image {
+        height: 200px;
+    }
+    
+    .decision-badge {
+        font-size: 1rem;
+        padding: var(--space-md) var(--space-lg);
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="verification-container">
+    <!-- Page Header -->
+    <div class="page-header animate-fade-in">
+        <h1 class="page-title">Face Verification</h1>
+        <p class="page-subtitle">
+            Compare facial images across different ages to verify identity with our advanced deep learning system.
+            Upload childhood and adult photos to analyze cross-age similarity.
+        </p>
+    </div>
+
+    <!-- Upload Section -->
+    <section class="upload-section">
+        <form method="POST" enctype="multipart/form-data" action="/verify" id="verificationForm">
+            <div class="upload-grid">
+                <!-- Childhood Photo -->
+                <div class="upload-card" id="childCard">
+                    <div class="upload-icon">
+                        <i class="fas fa-baby"></i>
+                    </div>
+                    <h3 class="upload-title">Earlier Photo</h3>
+                    <p class="upload-subtitle">Upload a childhood or younger photo (5-15 years recommended)</p>
+                    
+                    <input type="file" name="child" id="childInput" accept="image/*" required>
+                    
+                    <div class="file-info" id="childInfo" style="display: none;">
+                        <div class="file-name" id="childName"></div>
+                        <div class="file-size" id="childSize"></div>
+                    </div>
+                    
+                    <div class="preview-container" id="childPreviewContainer" style="display: none;">
+                        <img class="preview-image" id="childPreview" src="" alt="Earlier photo preview">
+                        <div class="preview-overlay">
+                            <button type="button" class="btn btn-primary btn-sm" onclick="removeBackground('child')">
+                                <i class="fas fa-magic"></i> Enhance
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="upload-requirements">
+                        <i class="fas fa-info-circle"></i> JPG, PNG up to 10MB • Clear face required
+                    </div>
+                </div>
+
+                <!-- Adult Photo -->
+                <div class="upload-card" id="adultCard">
+                    <div class="upload-icon">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h3 class="upload-title">Recent Photo</h3>
+                    <p class="upload-subtitle">Upload a current or adult photo (16+ years recommended)</p>
+                    
+                    <input type="file" name="adult" id="adultInput" accept="image/*" required>
+                    
+                    <div class="file-info" id="adultInfo" style="display: none;">
+                        <div class="file-name" id="adultName"></div>
+                        <div class="file-size" id="adultSize"></div>
+                    </div>
+                    
+                    <div class="preview-container" id="adultPreviewContainer" style="display: none;">
+                        <img class="preview-image" id="adultPreview" src="" alt="Recent photo preview">
+                        <div class="preview-overlay">
+                            <button type="button" class="btn btn-primary btn-sm" onclick="removeBackground('adult')">
+                                <i class="fas fa-magic"></i> Enhance
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="upload-requirements">
+                        <i class="fas fa-info-circle"></i> JPG, PNG up to 10MB • Clear face required
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hidden Inputs for Background Removal -->
+            <input type="hidden" name="child_bg" id="childBgPath">
+            <input type="hidden" name="adult_bg" id="adultBgPath">
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button class="btn btn-primary verify-btn btn-lg" type="submit" id="verifyBtn">
+                    <span class="btn-text">
+                        <i class="fas fa-fingerprint"></i> Verify Identity
+                    </span>
+                </button>
+                <button type="button" class="btn btn-ghost btn-lg" onclick="clearForm()">
+                    <i class="fas fa-redo"></i> Clear All
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <!-- Results Section -->
+    <section class="results-section" id="resultsSection">
+        {% if result %}
+            {% if result.status == "ok" %}
+            <div class="results-card glass-card">
+                <!-- Result Header -->
+                <div class="result-header">
+                    <h2 class="result-title">Verification Results</h2>
+                    <p class="result-subtitle">
+                        Analysis completed using our deep learning pipeline
+                    </p>
+                </div>
+
+                <!-- Decision Badge -->
+                <div class="decision-display">
+                    {% if result.decision == 'MATCH' %}
+                        <div class="decision-badge match">
+                            <i class="fas fa-check-circle"></i>
+                            MATCH
+                        </div>
+                    {% elif result.decision == 'NO_MATCH' %}
+                        <div class="decision-badge no-match">
+                            <i class="fas fa-times-circle"></i>
+                            NO MATCH
+                        </div>
+                    {% elif result.decision == 'LIKELY' %}
+                        <div class="decision-badge likely">
+                            <i class="fas fa-info-circle"></i>
+                            LIKELY
+                        </div>
+                        <div class="attention-alert info">
+                            <div class="attention-alert-content">
+                                <div>
+                                    <strong>High facial similarity detected!</strong><br>
+                                    However, evidence is insufficient for verification.<br>
+                                    <strong>Additional images of the same person may improve reliability.</strong>
+                                </div>
+                            </div>
+                        </div>
+                    {% elif result.decision == 'UNCERTAIN' %}
+                        <div class="decision-badge uncertain">
+                            <i class="fas fa-question-circle"></i>
+                            UNCERTAIN
+                        </div>
+                        <div class="attention-alert info">
+                            <div class="attention-alert-content">
+                                <div>
+                                    <strong>Facial evidence is insufficient!</strong><br>
+                                    <strong>Please provide additional images of the same person for better reliability.</strong>
+                                </div>
+                            </div>
+                        </div>
+                    {% elif result.decision == 'UNUSABLE' %}
+                        <div class="decision-badge unusable">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            UNUSABLE
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Confidence Display -->
+                <div class="confidence-display">
+                    {% if result.decision != 'UNUSABLE' %}
+                    <div class="confidence-score" id="confidenceScore">
+                        {{ "%.1f"|format(result.similarity) }}%
+                    </div>
+                    <div class="confidence-label">Face Similarity Score</div>
+                    
+                    <div class="confidence-meter">
+                        <div class="confidence-fill" id="confidenceFill" 
+                             style="width: {{ result.similarity }}%"></div>
+                    </div>
+                    
+                    <div class="confidence-steps">
+                        <span>Low</span>
+                        <span>Medium</span>
+                        <span>High</span>
+                        <span>Very High</span>
+                    </div>
+                    {% else %}
+                    <div class="confidence-label" style="font-size: 1.3rem; margin-top: var(--space-lg);">
+                        <i class="fas fa-exclamation-circle" style="color: #dc2626; margin-right: var(--space-md);"></i>
+                        Quality Below Threshold
+                    </div>
+                    <p style="margin-top: var(--space-md); color: var(--text-muted); text-align: center;">
+                        Unable to process verification due to image quality issues. 
+                        Please upload clearer facial images.
+                    </p>
+                    {% endif %}
+                </div>
+
+                <!-- Comparison Display -->
+                {% if result.decision != 'UNUSABLE' %}
+                <div class="comparison-display">
+                    <div class="comparison-item">
+                        <img class="comparison-image" src="/{{ result.img1_path }}" alt="Earlier photograph">
+                        <div class="comparison-label">Earlier Photo</div>
+                        <div class="comparison-subtitle">Childhood / Younger</div>
+                    </div>
+                    
+                    <div class="comparison-arrow">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                    
+                    <div class="comparison-item">
+                        <img class="comparison-image" src="/{{ result.img2_path }}" alt="Recent photograph">
+                        <div class="comparison-label">Recent Photo</div>
+                        <div class="comparison-subtitle">Adult / Current</div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Metrics Grid -->
+                <div class="metrics-grid">
+                    {% if result.decision != 'UNUSABLE' %}
+                    <div class="metric-item">
+                        <div class="metric-value">{{ "%.1f"|format(result.similarity) }}%</div>
+                        <div class="metric-label">Similarity Score</div>
+                        <div class="metric-description">Cross-age face matching accuracy</div>
+                    </div>
+                    
+                    <div class="metric-item">
+                        <div class="metric-value">{{ "%.2f"|format(result.probability) }}</div>
+                        <div class="metric-label">Probability</div>
+                        <div class="metric-description"> {{ result.label }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if result.quality_info %}
+                    <div class="metric-item">
+                        {% set q1_raw_pct = (result.quality_info.q1 * 100) %}
+                        {% set q1_display = result.quality_info.q1_display %}
+                        <div class="metric-value">{{ "%.1f"|format(q1_display if q1_display is not none and q1_display < q1_raw_pct else q1_raw_pct) }}</div>
+                        <div class="metric-label">Child Features Quality</div>
+                        <div class="metric-description">{{ result.quality_info.img1_age_hint }}</div>
+                    </div>
+                    
+                    <div class="metric-item">
+                        {% set q2_raw_pct = (result.quality_info.q2 * 100) %}
+                        {% set q2_display = result.quality_info.q2_display %}
+                        <div class="metric-value">{{ "%.1f"|format(q2_display if q2_display is not none and q2_display < q2_raw_pct else q2_raw_pct) }}</div>
+                        <div class="metric-label">Adult 2 Features Quality</div>
+                        <div class="metric-description">{{ result.quality_info.img2_age_hint }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Quality Analysis Section -->
+                {% if result.quality_info %}
+                <div class="neural-viz" style="margin-top: var(--space-xl);">
+                    <h3 class="neural-title">Quality Analysis</h3>
+                    <div class="metrics-grid" style="background: transparent; border: none; padding: 0;">
+                        <div class="metric-item">
+                            <div class="metric-value" style="font-size: 1.5rem;">{{ result.quality_info.worst_raw_image.upper() }}</div>
+                            <div class="metric-label">Lowest Raw Quality (Decision)</div>
+                            <div class="metric-description">{{ result.quality_info.worst_raw_label }}</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-value" style="font-size: 1.5rem;">{{ result.quality_info.worst_display_image.upper() }}</div>
+                            <div class="metric-label">Lowest Display Quality (UI)</div>
+                            <div class="metric-description">Display: {{ "%.1f"|format(result.quality_info.worst_display_score) }} ({{ (result.quality_info.worst_display_color_type or 'mixed')|capitalize }})</div>
+                        </div>
+                        <div class="metric-item" style="grid-column: span 2;">
+                            <div class="metric-label" style="margin-bottom: var(--space-sm);">Quality Assessment</div>
+                            <div class="metric-description" style="font-size: 1rem; color: var(--text-main); line-height: 1.6;">
+                                {{ result.quality_info.worst_raw_label }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Cropped Face Previews -->
+                    <div style="margin-top: var(--space-xl);">
+                        <h4 style="text-align: center; margin-bottom: var(--space-md); color: var(--text-muted); font-size: 1rem;">Detected & Cropped Faces</h4>
+                        <div class="comparison-display" style="margin: 0;">
+                            <div class="comparison-item">
+                                <img class="comparison-image" src="/{{ result.quality_info.img1_crop }}" alt="Cropped face 1" style="max-height: 200px;">
+                                <div class="comparison-label">Image 1 Crop</div>
+                                <div class="comparison-subtitle">Display: {{ "%.1f"|format(result.quality_info.q1_display) }} ({{ (result.quality_info.img1_color_type or 'mixed')|capitalize }}) • Raw: {{ "%.3f"|format(result.quality_info.q1) }}</div>
+                            </div>
+                            <div class="comparison-item">
+                                <img class="comparison-image" src="/{{ result.quality_info.img2_crop }}" alt="Cropped face 2" style="max-height: 200px;">
+                                <div class="comparison-label">Image 2 Crop</div>
+                                <div class="comparison-subtitle">Display: {{ "%.1f"|format(result.quality_info.q2_display) }} ({{ (result.quality_info.img2_color_type or 'grayscale')|replace('_',' ')|title }}) • Raw: {{ "%.3f"|format(result.quality_info.q2) }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Neural Network Visualization -->
+                <div class="neural-viz">
+                    <h3 class="neural-title">Deep Learning Pipeline</h3>
+                    <div class="neural-grid">
+                        <div class="neural-item">
+                            <div class="neural-icon">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <div class="neural-name">MTCNN</div>
+                            <div class="neural-description">Face Detection & Alignment</div>
+                        </div>
+                        
+                        <div class="neural-item">
+                            <div class="neural-icon">
+                                <i class="fas fa-network-wired"></i>
+                            </div>
+                            <div class="neural-name">InceptionResNet</div>
+                            <div class="neural-description">Feature Extraction</div>
+                        </div>
+                        
+                        <div class="neural-item">
+                            <div class="neural-icon">
+                                <i class="fas fa-project-diagram"></i>
+                            </div>
+                            <div class="neural-name">Siamese Network</div>
+                            <div class="neural-description">Similarity Scoring</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ethical Notice -->
+                <div class="ethical-notice">
+                    <h3 class="ethical-title">
+                        <i class="fas fa-shield-alt"></i> Important Notice
+                    </h3>
+                    <div class="ethical-content">
+                        <p>This system provides <strong>assistive assessment only</strong>. Results should be interpreted as probabilistic estimates, not definitive proof of identity.</p>
+                        <ul>
+                            <li>Always combine with other verification methods</li>
+                            <li>Consider contextual evidence and documentation</li>
+                            <li>Human judgment remains essential for critical decisions</li>
+                            <li>Results have inherent limitations with extreme age differences</li>
+                        </ul>
+                        <p style="margin-top: var(--space-md);">
+                            <i class="fas fa-lock"></i> All processing is secure and private. Images are not stored after analysis.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3 class="empty-title">Analysis Failed</h3>
+                <p class="empty-description">
+                    {{ result.message|default('Unable to process the uploaded images. Please ensure clear facial visibility and try again.') }}
+                </p>
+                <button class="btn btn-primary" onclick="clearForm()">
+                    <i class="fas fa-redo"></i> Try Again
+                </button>
+            </div>
+            {% endif %}
+        {% else %}
+        <div class="empty-state" id="emptyState">
+            <div class="empty-icon">
+                <i class="fas fa-upload"></i>
+            </div>
+            <h3 class="empty-title">Ready for Verification</h3>
+            <p class="empty-description">
+                Upload childhood and adult photographs to analyze cross-age similarity. 
+                Our deep learning system will compare facial features and provide a confidence score.
+            </p>
+            <div class="action-buttons" style="margin-top: var(--space-lg);">
+                <button class="btn btn-ghost" onclick="scrollToUpload()">
+                    <i class="fas fa-arrow-up"></i> Upload Images
+                </button>
+            </div>
+        </div>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// File upload and preview handling
+function setupUpload(cardId, inputId, previewId, infoId) {
+    const card = document.getElementById(cardId);
+    const input = document.getElementById(inputId);
+    const preview = document.getElementById(previewId);
+    const previewContainer = document.getElementById(previewId + 'Container');
+    const info = document.getElementById(infoId);
+    const fileName = document.getElementById(inputId.replace('Input', 'Name'));
+    const fileSize = document.getElementById(inputId.replace('Input', 'Size'));
+
+    // Click to upload
+    card.addEventListener('click', (e) => {
+        if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT') {
+            input.click();
+        }
+    });
+
+    // Drag and drop
+    card.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        card.classList.add('dragover');
+    });
+
+    card.addEventListener('dragleave', () => {
+        card.classList.remove('dragover');
+    });
+
+    card.addEventListener('drop', (e) => {
+        e.preventDefault();
+        card.classList.remove('dragover');
+        
+        if (e.dataTransfer.files.length > 0) {
+            input.files = e.dataTransfer.files;
+            updatePreview();
+        }
+    });
+
+    // File selection
+    input.addEventListener('change', updatePreview);
+
+    function updatePreview() {
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = (e) => {
+                preview.src = e.target.result;
+                previewContainer.style.display = 'block';
+                info.style.display = 'block';
+                fileName.textContent = file.name;
+                fileSize.textContent = formatFileSize(file.size);
+                card.style.borderStyle = 'solid';
+                card.style.borderColor = 'var(--primary)';
+            };
+            
+            reader.readAsDataURL(file);
+        }
+    }
+}
+
+// Initialize upload handlers
+setupUpload('childCard', 'childInput', 'childPreview', 'childInfo');
+setupUpload('adultCard', 'adultInput', 'adultPreview', 'adultInfo');
+
+// Format file size
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+// Background removal
+async function removeBackground(type) {
+    const input = document.getElementById(type + 'Input');
+    const preview = document.getElementById(type + 'Preview');
+    
+    if (!input.files[0]) {
+        alert('Please select an image first');
+        return;
+    }
+
+    // Show loading state
+    const originalSrc = preview.src;
+    preview.style.filter = 'blur(2px)';
+    preview.style.opacity = '0.7';
+
+    const formData = new FormData();
+    formData.append('image', input.files[0]);
+
+    try {
+        const response = await fetch('/bgremove', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.status === 'ok') {
+            preview.src = '/' + data.output;
+            document.getElementById(type + 'BgPath').value = data.output;
+            
+            // Show success message
+            showNotification('Background removed successfully', 'success');
+        } else {
+            throw new Error(data.message || 'Background removal failed');
+        }
+    } catch (error) {
+        console.error('Background removal error:', error);
+        showNotification('Failed to remove background', 'error');
+        preview.src = originalSrc;
+    } finally {
+        preview.style.filter = '';
+        preview.style.opacity = '';
+    }
+}
+
+// Form submission
+document.getElementById('verificationForm').addEventListener('submit', function(e) {
+    const childInput = document.getElementById('childInput');
+    const adultInput = document.getElementById('adultInput');
+    const verifyBtn = document.getElementById('verifyBtn');
+    
+    if (!childInput.files[0] || !adultInput.files[0]) {
+        e.preventDefault();
+        showNotification('Please upload both images before verifying', 'warning');
+        return;
+    }
+    
+    // Show loading state
+    verifyBtn.classList.add('loading');
+    verifyBtn.disabled = true;
+    
+    // Show processing notification
+    showNotification('Processing images with neural network...', 'info');
+});
+
+// Clear form
+function clearForm() {
+    document.getElementById('verificationForm').reset();
+    
+    // Reset previews
+    ['child', 'adult'].forEach(type => {
+        const preview = document.getElementById(type + 'Preview');
+        const container = document.getElementById(type + 'Preview' + 'Container');
+        const info = document.getElementById(type + 'Info');
+        const card = document.getElementById(type + 'Card');
+        
+        preview.src = '';
+        container.style.display = 'none';
+        info.style.display = 'none';
+        card.style.borderStyle = 'dashed';
+        card.style.borderColor = 'var(--border)';
+    });
+    
+    // Reset button state
+    const verifyBtn = document.getElementById('verifyBtn');
+    verifyBtn.classList.remove('loading');
+    verifyBtn.disabled = false;
+    
+    // Scroll to empty state
+    document.getElementById('emptyState').scrollIntoView({ behavior: 'smooth' });
+}
+
+// Scroll to upload section
+function scrollToUpload() {
+    document.querySelector('.upload-section').scrollIntoView({ behavior: 'smooth' });
+}
+
+// Notification system
+function showNotification(message, type = 'info') {
+    // Remove existing notifications
+    const existingNotifications = document.querySelectorAll('.notification');
+    existingNotifications.forEach(notif => notif.remove());
+    
+    // Create notification
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `
+        <i class="fas fa-${getNotificationIcon(type)}"></i>
+        <span>${message}</span>
+        <button onclick="this.parentElement.remove()">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    
+    // Add styles
+    notification.style.cssText = `
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--${type});
+        padding: var(--space-md) var(--space-lg);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-lg);
+        display: flex;
+        align-items: center;
+        gap: var(--space-md);
+        z-index: 10000;
+        animation: slideUp 0.3s ease-out;
+        max-width: 400px;
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.remove();
+        }
+    }, 5000);
+}
+
+function getNotificationIcon(type) {
+    const icons = {
+        'success': 'check-circle',
+        'error': 'exclamation-circle',
+        'warning': 'exclamation-triangle',
+        'info': 'info-circle'
+    };
+    return icons[type] || 'info-circle';
+}
+
+// Animate results on page load
+document.addEventListener('DOMContentLoaded', function() {
+    {% if result and result.status == "ok" %}
+    // Animate confidence score
+    const confidenceScore = document.getElementById('confidenceScore');
+    const confidenceFill = document.getElementById('confidenceFill');
+    
+    setTimeout(() => {
+        confidenceScore.style.transform = 'scale(1.1)';
+        confidenceFill.style.width = '{{ result.similarity }}%';
+        
+        setTimeout(() => {
+            confidenceScore.style.transform = 'scale(1)';
+        }, 300);
+    }, 500);
+    
+    // Scroll to results
+    setTimeout(() => {
+        document.getElementById('resultsSection').scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'start'
+        });
+    }, 1000);
+    {% endif %}
+});
+</script>
+{% endblock %}

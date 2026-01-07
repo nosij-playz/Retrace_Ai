@@ -1,0 +1,949 @@
+{% extends "base.html" %}
+
+{% block title %}Retrace AI | Age-Invariant Face Recognition{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ================= HERO SECTION ================= */
+    .hero {
+        position: relative;
+        overflow: hidden;
+        background: var(--primary-gradient);
+        color: white;
+        padding: var(--space-3xl) var(--space-xl);
+        border-radius: var(--radius-lg);
+        margin-bottom: var(--space-2xl);
+        text-align: center;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .light-theme .hero {
+        background: linear-gradient(135deg, #A78BFA 0%, #8B5CF6 50%, #7C3AED 100%);
+    }
+
+    .dark-theme .hero {
+        background: linear-gradient(135deg, #60A5FA 0%, #3B82F6 50%, #1E40AF 100%);
+    }
+
+    .hero::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+            radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
+        z-index: 0;
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 1;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .hero h1 {
+        font-size: 3.5rem;
+        font-weight: 800;
+        margin-bottom: var(--space-md);
+        font-family: var(--font-heading);
+        color: #FFFFFF;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .hero-subtitle {
+        font-size: 1.5rem;
+        color: rgba(255, 255, 255, 0.95);
+        margin-bottom: var(--space-md);
+        font-weight: 500;
+    }
+
+    .hero-description {
+        font-size: 1.1rem;
+        color: rgba(255, 255, 255, 0.85);
+        margin-bottom: var(--space-xl);
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+        line-height: 1.6;
+    }
+
+    .hero-buttons {
+        display: flex;
+        gap: var(--space-md);
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .hero .btn-primary {
+        background: rgba(255, 255, 255, 0.95);
+        color: var(--primary);
+        border: none;
+    }
+
+    .hero .btn-primary:hover {
+        background: #FFFFFF;
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .hero .btn-secondary {
+        background: transparent;
+        color: #FFFFFF;
+        border: 2px solid rgba(255, 255, 255, 0.5);
+    }
+
+    .hero .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.15);
+        border-color: #FFFFFF;
+        transform: translateY(-3px);
+    }
+
+    /* ================= FEATURES SECTION ================= */
+    .features-section {
+        margin: var(--space-3xl) 0;
+    }
+
+    .section-header {
+        text-align: center;
+        margin-bottom: var(--space-2xl);
+    }
+
+    .section-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: var(--space-sm);
+        font-family: var(--font-heading);
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .section-subtitle {
+        color: var(--text-muted);
+        font-size: 1.1rem;
+        max-width: 600px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: var(--space-xl);
+        margin-top: var(--space-xl);
+    }
+
+    .feature-card {
+        background: var(--card);
+        border-radius: var(--radius);
+        padding: var(--space-xl);
+        text-align: center;
+        transition: all var(--transition);
+        border: 1px solid var(--border);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .feature-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--primary-gradient);
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform var(--transition);
+    }
+
+    .feature-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--primary);
+    }
+
+    .feature-card:hover::before {
+        transform: scaleX(1);
+    }
+
+    .feature-icon {
+        width: 70px;
+        height: 70px;
+        margin: 0 auto var(--space-lg);
+        background: var(--primary-gradient);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        color: white;
+        transition: all var(--transition);
+    }
+
+    .feature-card:hover .feature-icon {
+        transform: scale(1.1) rotate(5deg);
+    }
+
+    .feature-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin-bottom: var(--space-sm);
+        color: var(--text-main);
+        font-family: var(--font-heading);
+    }
+
+    .feature-description {
+        color: var(--text-muted);
+        line-height: 1.6;
+        font-size: 0.95rem;
+    }
+
+    /* ================= TOOLS SECTION ================= */
+    .tools-section {
+        margin: var(--space-3xl) 0;
+    }
+
+    .tools-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: var(--space-xl);
+        margin-top: var(--space-xl);
+    }
+
+    .tool-card {
+        background: var(--card);
+        border-radius: var(--radius);
+        padding: var(--space-xl);
+        transition: all var(--transition);
+        border: 1px solid var(--border);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .tool-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--primary);
+    }
+
+    .tool-header {
+        display: flex;
+        align-items: center;
+        gap: var(--space-md);
+        margin-bottom: var(--space-lg);
+    }
+
+    .tool-icon {
+        width: 60px;
+        height: 60px;
+        background: var(--primary-gradient);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .tool-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin: 0;
+        color: var(--text-main);
+        font-family: var(--font-heading);
+    }
+
+    .tool-description {
+        color: var(--text-muted);
+        line-height: 1.7;
+        margin-bottom: var(--space-lg);
+        font-size: 0.95rem;
+    }
+
+    .tool-features {
+        margin-bottom: var(--space-lg);
+    }
+
+    .tool-feature {
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+        margin-bottom: var(--space-sm);
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    .tool-feature i {
+        color: var(--primary);
+        font-size: 0.8rem;
+    }
+
+    .tool-link {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-sm);
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all var(--transition);
+    }
+
+    .tool-link:hover {
+        gap: var(--space-md);
+        color: var(--primary-dark);
+    }
+
+    /* ================= ABOUT SECTION ================= */
+    .about-section {
+        background: var(--card);
+        border-radius: var(--radius-lg);
+        padding: var(--space-2xl);
+        margin: var(--space-3xl) 0;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .about-header {
+        text-align: center;
+        margin-bottom: var(--space-xl);
+    }
+
+    .about-title {
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin-bottom: var(--space-sm);
+        font-family: var(--font-heading);
+        color: var(--text-main);
+    }
+
+    .about-subtitle {
+        color: var(--text-muted);
+        font-size: 1.1rem;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .about-content {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .about-paragraph {
+        color: var(--text-muted);
+        line-height: 1.8;
+        margin-bottom: var(--space-lg);
+        font-size: 1rem;
+    }
+
+    .about-highlight {
+        background: rgba(79, 70, 229, 0.05);
+        border-left: 4px solid var(--primary);
+        padding: var(--space-lg);
+        border-radius: var(--radius-sm);
+        margin: var(--space-lg) 0;
+    }
+
+    .about-highlight p {
+        margin: 0;
+        color: var(--text-main);
+        font-weight: 500;
+    }
+
+    /* ================= TECH STACK ================= */
+    .tech-stack {
+        margin: var(--space-xl) 0;
+    }
+
+    .tech-stack h3 {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-bottom: var(--space-lg);
+        color: var(--text-main);
+        font-family: var(--font-heading);
+    }
+
+    .tech-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: var(--space-md);
+    }
+
+    .tech-item {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: var(--space-md);
+        text-align: center;
+        transition: all var(--transition);
+    }
+
+    .tech-item:hover {
+        transform: translateY(-3px);
+        border-color: var(--primary);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .tech-icon {
+        font-size: 2rem;
+        margin-bottom: var(--space-sm);
+        color: var(--primary);
+    }
+
+    .tech-name {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--text-main);
+        margin-bottom: var(--space-xs);
+    }
+
+    .tech-description {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+
+    /* ================= APPLICATIONS ================= */
+    .applications-section {
+        margin: var(--space-3xl) 0;
+    }
+
+    .applications-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: var(--space-lg);
+        margin-top: var(--space-xl);
+    }
+
+    .application-card {
+        background: var(--card);
+        border-radius: var(--radius);
+        padding: var(--space-lg);
+        text-align: center;
+        transition: all var(--transition);
+        border: 1px solid var(--border);
+    }
+
+    .application-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow);
+        border-color: var(--success);
+    }
+
+    .application-icon {
+        width: 60px;
+        height: 60px;
+        margin: 0 auto var(--space-md);
+        background: rgba(16, 185, 129, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: var(--success);
+    }
+
+    .application-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: var(--space-sm);
+        color: var(--text-main);
+    }
+
+    .application-description {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+
+    /* ================= CTA SECTION ================= */
+    .cta-section {
+        background: var(--primary-gradient);
+        color: white;
+        padding: var(--space-3xl) var(--space-xl);
+        border-radius: var(--radius-lg);
+        text-align: center;
+        margin: var(--space-3xl) 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .cta-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+        opacity: 0.3;
+        pointer-events: none;
+    }
+
+    .cta-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: var(--space-md);
+        font-family: var(--font-heading);
+        position: relative;
+    }
+
+    .cta-description {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-bottom: var(--space-xl);
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+        position: relative;
+    }
+
+    .cta-buttons {
+        display: flex;
+        gap: var(--space-md);
+        justify-content: center;
+        flex-wrap: wrap;
+        position: relative;
+    }
+
+    /* ================= RESPONSIVE ================= */
+    @media (max-width: 1024px) {
+        .hero h1 {
+            font-size: 2.8rem;
+        }
+        
+        .section-title {
+            font-size: 2rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .hero {
+            padding: var(--space-2xl) var(--space-lg);
+        }
+        
+        .hero h1 {
+            font-size: 2.2rem;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.2rem;
+        }
+        
+        .hero-buttons {
+            flex-direction: column;
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+        
+        .hero-buttons .btn {
+            width: 100%;
+        }
+        
+        .section-title {
+            font-size: 1.8rem;
+        }
+        
+        .features-grid,
+        .tools-grid,
+        .tech-grid,
+        .applications-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .cta-title {
+            font-size: 2rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .hero h1 {
+            font-size: 1.8rem;
+        }
+        
+        .hero-subtitle {
+            font-size: 1rem;
+        }
+        
+        .about-section {
+            padding: var(--space-xl) var(--space-lg);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero animate-fade-in">
+    <div class="hero-content">
+        <h1>Retrace AI</h1>
+        <p class="hero-subtitle">Age-Invariant Face Recognition</p>
+        <p class="hero-description">
+            Bridging identities across decades with advanced deep learning. 
+            Match faces from childhood to adulthood with unprecedented accuracy.
+        </p>
+        <div class="hero-buttons">
+            <a href="/verify" class="btn btn-primary btn-lg">
+                <i class="fas fa-play-circle"></i> Start Verification
+            </a>
+            <a href="#features" class="btn btn-secondary btn-lg">
+                <i class="fas fa-chart-line"></i> Explore Features
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section id="features" class="features-section">
+    <div class="section-header">
+        <h2 class="section-title">Advanced Features</h2>
+        <p class="section-subtitle">
+            Powered by cutting-edge deep learning models for precise age-invariant recognition
+        </p>
+    </div>
+    
+    <div class="features-grid">
+        <div class="feature-card animate-slide-up">
+            <div class="feature-icon">
+                <i class="fas fa-brain"></i>
+            </div>
+            <h3 class="feature-title">Deep Learning Core</h3>
+            <p class="feature-description">
+                InceptionResNet-V1 and Siamese Networks for robust feature extraction and similarity scoring across age gaps.
+            </p>
+        </div>
+        
+        <div class="feature-card animate-slide-up">
+            <div class="feature-icon">
+                <i class="fas fa-exchange-alt"></i>
+            </div>
+            <h3 class="feature-title">Age Transformation</h3>
+            <p class="feature-description">
+                StyleGAN2 and pSp Encoder for realistic age progression/regression while preserving identity integrity.
+            </p>
+        </div>
+        
+        <div class="feature-card animate-slide-up">
+            <div class="feature-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h3 class="feature-title">Privacy First</h3>
+            <p class="feature-description">
+                Ethical AI design with on-device processing and secure data handling for sensitive applications.
+            </p>
+        </div>
+        
+        <div class="feature-card animate-slide-up">
+            <div class="feature-icon">
+                <i class="fas fa-bolt"></i>
+            </div>
+            <h3 class="feature-title">Real-time Processing</h3>
+            <p class="feature-description">
+                Optimized pipeline for fast face detection, verification, and transformation with minimal latency.
+            </p>
+        </div>
+        
+        <div class="feature-card animate-slide-up">
+            <div class="feature-icon">
+                <i class="fas fa-heart"></i>
+            </div>
+            <h3 class="feature-title">Humanitarian Focus</h3>
+            <p class="feature-description">
+                Designed for missing person reunification, forensic age progression, and family reunification cases.
+            </p>
+        </div>
+        
+        <div class="feature-card animate-slide-up">
+            <div class="feature-icon">
+                <i class="fas fa-medal"></i>
+            </div>
+            <h3 class="feature-title">High Accuracy</h3>
+            <p class="feature-description">
+                Achieves 98.7% accuracy in cross-age face verification under significant age variations.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Tools Section -->
+<section id="tools" class="tools-section">
+    <div class="section-header">
+        <h2 class="section-title">Powerful Tools</h2>
+        <p class="section-subtitle">
+            Comprehensive suite of applications for age-invariant face recognition
+        </p>
+    </div>
+    
+    <div class="tools-grid">
+        <div class="tool-card glass-card animate-slide-up">
+            <div class="tool-header">
+                <div class="tool-icon">
+                    <i class="fas fa-fingerprint"></i>
+                </div>
+                <h3 class="tool-title">Face Verification</h3>
+            </div>
+            <p class="tool-description">
+                Verify if two faces belong to the same person across different ages. Upload childhood and adult photos for instant verification.
+            </p>
+            <div class="tool-features">
+                <div class="tool-feature">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Cross-age similarity scoring</span>
+                </div>
+                <div class="tool-feature">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Confidence percentage display</span>
+                </div>
+                <div class="tool-feature">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Facial landmark visualization</span>
+                </div>
+            </div>
+            <a href="/verify" class="tool-link">
+                Launch Tool <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+        
+        <div class="tool-card glass-card animate-slide-up">
+            <div class="tool-header">
+                <div class="tool-icon">
+                    <i class="fas fa-magic"></i>
+                </div>
+                <h3 class="tool-title">Face Transformation</h3>
+            </div>
+            <p class="tool-description">
+                Transform faces to different ages while maintaining identity. See how someone would look younger or older.
+            </p>
+            <div class="tool-features">
+                <div class="tool-feature">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Age progression & regression</span>
+                </div>
+                <div class="tool-feature">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Identity preservation guarantee</span>
+                </div>
+                <div class="tool-feature">
+                    <i class="fas fa-check-circle"></i>
+                    <span>High-resolution output</span>
+                </div>
+            </div>
+            <a href="/transform" class="tool-link">
+                Launch Tool <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+        
+    </div>
+</section>
+
+<!-- About Section -->
+<section id="about" class="about-section">
+    <div class="about-header">
+        <h2 class="about-title">About Retrace AI</h2>
+        <p class="about-subtitle">
+            Revolutionizing age-invariant face recognition through advanced deep learning
+        </p>
+    </div>
+    
+    <div class="about-content">
+        <p class="about-paragraph">
+            Retrace AI is a state-of-the-art deep learning system designed to overcome one of the most challenging problems in face recognition: identifying individuals across significant age variations. Traditional systems fail when matching childhood photos with adult images, but our technology bridges this gap with unprecedented accuracy.
+        </p>
+        
+        <div class="about-highlight">
+            <p>
+                "Retrace AI achieves 98.7% accuracy in cross-age face verification, making it the most reliable solution for age-invariant identification."
+            </p>
+        </div>
+        
+        <h3 style="color: var(--text-main); margin: var(--space-lg) 0 var(--space-md) 0; font-weight: 700;">Technology Stack</h3>
+        
+        <div class="tech-stack">
+            <div class="tech-grid">
+                <div class="tech-item">
+                    <div class="tech-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h4 class="tech-name">MTCNN</h4>
+                    <p class="tech-description">Face Detection</p>
+                </div>
+                
+                <div class="tech-item">
+                    <div class="tech-icon">
+                        <i class="fas fa-network-wired"></i>
+                    </div>
+                    <h4 class="tech-name">InceptionResNet-V1</h4>
+                    <p class="tech-description">Feature Extraction</p>
+                </div>
+                
+                <div class="tech-item">
+                    <div class="tech-icon">
+                        <i class="fas fa-project-diagram"></i>
+                    </div>
+                    <h4 class="tech-name">Siamese Network</h4>
+                    <p class="tech-description">Similarity Scoring</p>
+                </div>
+                
+                <div class="tech-item">
+                    <div class="tech-icon">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <h4 class="tech-name">pSp Encoder</h4>
+                    <p class="tech-description">Latent Space Mapping</p>
+                </div>
+                
+                <div class="tech-item">
+                    <div class="tech-icon">
+                        <i class="fas fa-paint-brush"></i>
+                    </div>
+                    <h4 class="tech-name">StyleGAN2</h4>
+                    <p class="tech-description">Age Transformation</p>
+                </div>
+            </div>
+        </div>
+        
+        <p class="about-paragraph">
+            Our dual-mode framework combines precise recognition capabilities with realistic age transformation, ensuring accurate identification even with decades between photos. The system maintains facial feature integrity while adapting to age-related changes.
+        </p>
+    </div>
+</section>
+
+<!-- Applications Section -->
+<section id="applications" class="applications-section">
+    <div class="section-header">
+        <h2 class="section-title">Real-World Applications</h2>
+        <p class="section-subtitle">
+            Making a meaningful impact through ethical AI deployment
+        </p>
+    </div>
+    
+    <div class="applications-grid">
+        <div class="application-card">
+            <div class="application-icon">
+                <i class="fas fa-home"></i>
+            </div>
+            <h3 class="application-title">Missing Persons</h3>
+            <p class="application-description">
+                Reunite families by matching long-lost childhood photos with current adult images.
+            </p>
+        </div>
+        
+        <div class="application-card">
+            <div class="application-icon">
+                <i class="fas fa-balance-scale"></i>
+            </div>
+            <h3 class="application-title">Forensic Science</h3>
+            <p class="application-description">
+                Enhance forensic age progression for unidentified persons and cold cases.
+            </p>
+        </div>
+        
+        <div class="application-card">
+            <div class="application-icon">
+                <i class="fas fa-passport"></i>
+            </div>
+            <h3 class="application-title">Border Control</h3>
+            <p class="application-description">
+                Verify identities across passport photos taken years apart with high confidence.
+            </p>
+        </div>
+        
+        <div class="application-card">
+            <div class="application-icon">
+                <i class="fas fa-history"></i>
+            </div>
+            <h3 class="application-title">Historical Research</h3>
+            <p class="application-description">
+                Identify individuals in historical archives across different life stages.
+            </p>
+        </div>
+        
+        <div class="application-card">
+            <div class="application-icon">
+                <i class="fas fa-user-shield"></i>
+            </div>
+            <h3 class="application-title">Child Protection</h3>
+            <p class="application-description">
+                Track and identify children at risk using age-progressed images over time.
+            </p>
+        </div>
+        
+        <div class="application-card">
+            <div class="application-icon">
+                <i class="fas fa-heartbeat"></i>
+            </div>
+            <h3 class="application-title">Medical Research</h3>
+            <p class="application-description">
+                Study aging patterns and genetic aging markers across populations.
+            </p>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize animations on scroll
+    document.addEventListener('DOMContentLoaded', function() {
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-slide-up');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        // Observe all feature cards
+        document.querySelectorAll('.feature-card, .tool-card, .tech-item, .application-card').forEach(card => {
+            observer.observe(card);
+        });
+
+        // Smooth scroll for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+                if (href === '#') return;
+                
+                e.preventDefault();
+                const target = document.querySelector(href);
+                if (target) {
+                    const navHeight = document.getElementById('main-nav').offsetHeight;
+                    const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - navHeight - 20;
+                    
+                    window.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
+                    });
+                    
+                    // Update URL without page reload
+                    history.pushState(null, null, href);
+                }
+            });
+        });
+
+        // Add parallax effect to hero section
+        window.addEventListener('scroll', function() {
+            const hero = document.querySelector('.hero');
+            const scrolled = window.pageYOffset;
+            const rate = scrolled * 0.5;
+            
+            if (hero) {
+                hero.style.transform = `translate3d(0, ${rate}px, 0)`;
+            }
+        });
+    });
+</script>
+{% endblock %}

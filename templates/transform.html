@@ -1,0 +1,384 @@
+{% extends "base.html" %}
+
+{% block title %}Face Age Transformation - Retrace AI{% endblock %}
+
+{% block extra_css %}
+<style>
+.transform-container { max-width: 1200px; margin: 0 auto; }
+.page-header { text-align: center; margin-bottom: var(--space-2xl); }
+.page-title { font-size: 2.6rem; font-weight: 800; font-family: var(--font-heading); background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: var(--space-sm); }
+.page-subtitle { color: var(--text-muted); max-width: 720px; margin: 0 auto; line-height: 1.6; }
+
+.upload-shell { margin-bottom: var(--space-2xl); }
+.upload-card { background: var(--card); border: 1px dashed var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); padding: var(--space-xl); transition: all var(--transition); }
+.upload-card:hover { border-color: var(--primary); box-shadow: var(--shadow); transform: translateY(-4px); }
+.upload-grid { display: grid; grid-template-columns: 1fr 360px; gap: var(--space-xl); align-items: stretch; }
+.upload-info { display: flex; flex-direction: column; gap: var(--space-md); }
+.upload-icon { width: 56px; height: 56px; border-radius: 14px; background: var(--primary-gradient); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; box-shadow: var(--shadow-primary); }
+.upload-title { font-size: 1.6rem; font-weight: 800; font-family: var(--font-heading); }
+.upload-copy { color: var(--text-muted); line-height: 1.6; }
+.upload-req { display: flex; flex-wrap: wrap; gap: var(--space-sm); color: var(--text-light); font-size: 0.95rem; }
+.upload-req span { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.45rem 0.75rem; background: var(--secondary-bg); border-radius: 999px; border: 1px solid var(--border); }
+
+.upload-drop { position: relative; border: 2px dashed var(--border); border-radius: var(--radius); padding: var(--space-lg); background: var(--secondary-bg); text-align: center; cursor: pointer; transition: all var(--transition); display: flex; flex-direction: column; gap: var(--space-sm); justify-content: center; }
+.upload-drop:hover { border-color: var(--primary); background: rgba(96, 165, 250, 0.08); }
+.upload-drop input { display: none; }
+.upload-drop .primary-text { font-weight: 700; color: var(--text-main); }
+.upload-drop .secondary-text { color: var(--text-muted); font-size: 0.95rem; }
+
+.preview-pane { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; position: relative; min-height: 320px; display: flex; align-items: center; justify-content: center; }
+.preview-image { width: 100%; height: 100%; object-fit: contain; display: none; }
+.preview-placeholder { color: var(--text-muted); font-size: 0.95rem; display: flex; flex-direction: column; align-items: center; gap: var(--space-sm); padding: var(--space-lg); text-align: center; }
+
+.file-chip { margin-top: var(--space-md); display: inline-flex; align-items: center; gap: var(--space-sm); padding: 0.6rem 0.9rem; border-radius: 999px; background: rgba(96, 165, 250, 0.12); color: var(--text-main); border: 1px solid var(--border); font-weight: 600; word-break: break-word; }
+.upload-actions { display: flex; align-items: center; gap: var(--space-md); justify-content: flex-start; margin-top: var(--space-lg); flex-wrap: wrap; }
+.upload-btn { min-width: 180px; padding: var(--space-md) var(--space-xl); }
+.upload-hint { color: var(--text-light); font-size: 0.95rem; }
+
+.alert-card { margin-top: var(--space-lg); padding: var(--space-md); border-radius: var(--radius); border: 1px solid rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.08); color: var(--error); }
+
+.results-section { margin-top: var(--space-2xl); }
+.status-pill { display: inline-flex; align-items: center; gap: var(--space-sm); padding: 0.65rem 1rem; border-radius: 999px; font-weight: 700; letter-spacing: 0.3px; }
+.status-pill.good { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.35); }
+.status-pill.bad { background: rgba(239, 68, 68, 0.15); color: var(--error); border: 1px solid rgba(239, 68, 68, 0.35); }
+.status-note { margin-top: var(--space-sm); color: var(--text-muted); font-size: 0.95rem; }
+.quality-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: var(--space-lg); box-shadow: var(--shadow-sm); transition: transform var(--transition), box-shadow var(--transition); }
+.quality-card:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+.quality-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-lg); margin-top: var(--space-lg); }
+.metric-label { font-size: 0.95rem; color: var(--text-muted); font-weight: 600; letter-spacing: 0.2px; }
+.metric-value { font-size: 1.4rem; font-weight: 800; color: var(--text-main); margin: 0.35rem 0; }
+.metric-sub { color: var(--text-light); font-size: 0.9rem; }
+.metric-tag { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.35rem 0.65rem; border-radius: 10px; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
+.metric-tag.good { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+.metric-tag.bad { background: rgba(239, 68, 68, 0.15); color: var(--error); }
+
+.image-section { margin-top: var(--space-2xl); display: flex; align-items: center; justify-content: center; gap: var(--space-lg); flex-wrap: wrap; }
+.image-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-md); box-shadow: var(--shadow-sm); text-align: center; flex: 0 1 360px; }
+.image-card h3 { margin-bottom: var(--space-sm); font-family: var(--font-heading); font-size: 1.05rem; }
+.image-frame { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); background: var(--secondary-bg); aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; position: relative; width: 360px; height: 360px; }
+.image-frame img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.image-placeholder { color: var(--text-muted); padding: var(--space-md); font-size: 0.85rem; }
+.image-arrow { display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.8rem; animation: pulse 2s infinite; flex-shrink: 0; }
+
+/* Zoom in generated result image */
+.image-card:last-child .image-frame img { transform: scale(1.5); object-fit: cover; }
+
+/* Disable any rotation animations on buttons */
+.btn i, 
+.btn .fas, 
+.btn .fa,
+button i,
+button .fas,
+button .fa {
+    animation: none !important;
+    transform: none !important;
+}
+
+/* Transform button specific styles - no animations */
+.transform-action-btn,
+.transform-action-btn *,
+.transform-action-btn i,
+.transform-action-btn .fas,
+.transform-action-btn .fa {
+    animation: none !important;
+    -webkit-animation: none !important;
+    transform: none !important;
+    -webkit-transform: none !important;
+}
+
+.controls-card { margin-top: var(--space-2xl); background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-xl); box-shadow: var(--shadow-sm); }
+.age-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-lg); margin-bottom: var(--space-lg); }
+.field-label { display: flex; flex-direction: column; gap: var(--space-sm); color: var(--text-muted); font-weight: 600; }
+.field-input { padding: 0.9rem; border-radius: var(--radius); border: 1px solid var(--border); background: var(--secondary-bg); color: var(--text-main); font-size: 1rem; }
+.field-input:focus { outline: 2px solid var(--primary-light); border-color: var(--primary-light); }
+
+@media (max-width: 992px) {
+    .upload-grid { grid-template-columns: 1fr; }
+    .preview-pane { min-height: 280px; }
+}
+
+@media (max-width: 640px) {
+    .page-title { font-size: 2.2rem; }
+    .upload-card { padding: var(--space-lg); }
+    .image-frame { min-height: 260px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container transform-container">
+    <div class="page-header animate-fade-in">
+        <h1 class="page-title">Face Age Transformation</h1>
+        <p class="page-subtitle">Upload a portrait, preview it instantly, and run our facial quality check before generating the aged output.</p>
+    </div>
+
+    <section class="upload-shell">
+        <form id="uploadForm" method="POST" enctype="multipart/form-data" class="upload-card animate-slide-up">
+            <div class="upload-grid">
+                <div class="upload-info">
+                    <div class="upload-icon"><i class="fas fa-wand-magic-sparkles"></i></div>
+                    <div>
+                        <div class="upload-title">Upload portrait</div>
+                        <p class="upload-copy">Use a clear, front-facing photo. We will validate lighting, sharpness, and alignment before allowing transformation.</p>
+                    </div>
+                    <div class="upload-req">
+                        <span><i class="fas fa-image"></i> JPG/PNG</span>
+                        <span><i class="fas fa-weight-hanging"></i> Max 10MB</span>
+                        <span><i class="fas fa-face-smile"></i> Single face</span>
+                    </div>
+                    <label class="upload-drop" for="photoInput" id="uploadDrop">
+                        <input type="file" id="photoInput" name="photo" accept="image/*" required>
+                        <div class="primary-text">Click or drag to select</div>
+                        <div class="secondary-text">We will show a live preview before processing</div>
+                        <div class="file-chip" id="fileChip" style="display: {% if image_url %}inline-flex{% else %}none{% endif %};">
+                            <i class="fas fa-file-image"></i>
+                            <span id="photoName">{% if image_url %}{{ image_url.rsplit('/', 1)[-1] }}{% else %}No file selected{% endif %}</span>
+                        </div>
+                    </label>
+                    <div class="upload-actions">
+                        <button type="submit" class="btn btn-primary upload-btn">
+                            <i class="fas fa-gears"></i> Process Image
+                        </button>
+                        <p class="upload-hint">We will not store your upload. Processing runs locally on this session.</p>
+                    </div>
+                </div>
+
+                <div class="preview-pane" id="previewPane">
+                    {% if image_url %}
+                        <img src="/{{ image_url }}" alt="Uploaded preview" class="preview-image" id="previewImage" style="display: block;">
+                    {% else %}
+                        <img src="" alt="Uploaded preview" class="preview-image" id="previewImage">
+                        <div class="preview-placeholder" id="previewPlaceholder">
+                            <i class="fas fa-eye"></i>
+                            <span>Live preview will appear here</span>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+    </section>
+
+    {% if validation %}
+        {% if crop_message %}
+        <p class="status-note">{{ crop_message }}</p>
+        {% endif %}
+
+        <div class="quality-grid">
+            <div class="quality-card">
+                <div class="metric-label">Appearance quality</div>
+                {% set appearance = validation.get('appearance_quality', '-') %}
+                <div class="metric-value">{{ appearance }}</div>
+                <div class="metric-tag {% if appearance in ['OK'] %}good{% else %}bad{% endif %}">{{ appearance }}</div>
+                <div class="metric-sub">Saturation and overall clarity</div>
+            </div>
+
+            <div class="quality-card">
+                <div class="metric-label">Centered face</div>
+                {% set centered = validation.get('centered_face', '-') %}
+                <div class="metric-value">{{ centered }}</div>
+                <div class="metric-sub">Offset: {{ '%.3f'|format(validation.get('center_offset', 0)) }}</div>
+                <div class="metric-tag {% if centered in ['CENTERED'] %}good{% else %}bad{% endif %}">{{ centered }}</div>
+            </div>
+
+            <div class="quality-card">
+                <div class="metric-label">Frontal alignment</div>
+                {% set frontal = validation.get('frontal_alignment', '-') %}
+                <div class="metric-value">{{ frontal }}</div>
+                <div class="metric-sub">Roll: {{ '%.2f'|format(validation.get('roll_deg', 0)) }}°</div>
+                <div class="metric-tag {% if frontal in ['FRONTAL'] %}good{% else %}bad{% endif %}">{{ frontal }}</div>
+            </div>
+
+            <div class="quality-card">
+                <div class="metric-label">Sharpness</div>
+                {% set sharp = validation.get('sharpness', '-') %}
+                <div class="metric-value">{{ sharp }}</div>
+                <div class="metric-sub">Blur score: {{ '%.1f'|format(validation.get('blur_score', 0)) }}</div>
+                <div class="metric-tag {% if sharp in ['SHARP'] %}good{% else %}bad{% endif %}">{{ sharp }}</div>
+            </div>
+
+            <div class="quality-card">
+                <div class="metric-label">Lighting</div>
+                {% set lighting = validation.get('lighting', '-') %}
+                <div class="metric-value">{{ lighting }}</div>
+                <div class="metric-sub">Mean luma: {{ '%.1f'|format(validation.get('mean_luma', 0)) }}</div>
+                <div class="metric-tag {% if lighting in ['WELL_LIT'] %}good{% else %}bad{% endif %}">{{ lighting }}</div>
+            </div>
+
+            <div class="quality-card">
+                <div class="metric-label">Mouth state</div>
+                {% set mouth = validation.get('mouth_state', '-') %}
+                <div class="metric-value">{{ mouth }}</div>
+                <div class="metric-sub">Ratio: {{ '%.2f'|format(validation.get('mouth_ratio', 0)) }}</div>
+                <div class="metric-tag {% if mouth in ['CLOSED'] %}good{% else %}bad{% endif %}">{{ mouth }}</div>
+            </div>
+
+            <div class="quality-card">
+                <div class="metric-label">Eyes state</div>
+                {% set eyes = validation.get('eyes_state', '-') %}
+                <div class="metric-value">{{ eyes }}</div>
+                <div class="metric-sub">L/R EYES: {{ '%.2f'|format(validation.get('eye_left', 0)) }} / {{ '%.2f'|format(validation.get('eye_right', 0)) }}</div>
+                <div class="metric-tag {% if eyes in ['OPEN'] %}good{% else %}bad{% endif %}">{{ eyes }}</div>
+            </div>
+
+            <div class="quality-card">
+                <div class="metric-label">Face covering</div>
+                {% set covering = validation.get('face_covering', '-') %}
+                <div class="metric-value">{{ covering }}</div>
+                <div class="metric-sub">Ensures no occlusion/mask</div>
+                <div class="metric-tag {% if covering in ['NOT DETECTED'] %}good{% else %}bad{% endif %}">{{ covering }}</div>
+            </div>
+        </div>
+    </section>
+
+    {% if validation.result %}
+    <section class="image-section animate-slide-up">
+        <div class="image-card">
+            <h3>Detected face</h3>
+            <div class="image-frame">
+                {% if image_url %}
+                    <img src="/{{ image_url }}" alt="Cropped face">
+                {% else %}
+                    <div class="image-placeholder">No cropped image</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="image-arrow">
+            <i class="fas fa-arrow-right"></i>
+        </div>
+
+        <div class="image-card">
+            <h3>Generated result</h3>
+            <div class="image-frame">
+                {% if transformed_image_url %}
+                    <img src="/{{ transformed_image_url }}" alt="Transformed face">
+                {% else %}
+                    <div class="image-placeholder">Your transformed image will appear here.</div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <section class="controls-card animate-slide-up">
+        <form id="ageTransformForm" method="POST" action="/transform" enctype="multipart/form-data" class="age-row">
+            {% if original_image_url %}
+            <input type="hidden" name="photo" value="{{ original_image_url }}">
+            {% endif %}
+            <label class="field-label">Source age
+                <input class="field-input" type="number" name="source_age" value="{{ source_age or 25 }}" min="5" max="90">
+            </label>
+            <label class="field-label">Target age
+                <input class="field-input" type="number" name="target_age" value="{{ target_age or 55 }}" min="5" max="90">
+            </label>
+            <div class="field-label" style="justify-content: flex-end; gap: var(--space-md);">
+                <button type="submit" class="btn btn-primary transform-action-btn" id="transformBtn">
+                    <i class="fas fa-rocket"></i> Transform face
+                </button>
+                <button type="button" class="btn btn-secondary transform-action-btn" id="clearBtn">
+                    <i class="fas fa-trash"></i> Clear
+                </button>
+            </div>
+        </form>
+    </section>
+    {% endif %}
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const photoInput = document.getElementById('photoInput');
+    const photoName = document.getElementById('photoName');
+    const fileChip = document.getElementById('fileChip');
+    const previewImage = document.getElementById('previewImage');
+    const previewPlaceholder = document.getElementById('previewPlaceholder');
+    const clearBtn = document.getElementById('clearBtn');
+    const transformBtn = document.getElementById('transformBtn');
+    const ageTransformForm = document.getElementById('ageTransformForm');
+
+    photoInput?.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (photoName) photoName.textContent = file.name;
+        if (fileChip) fileChip.style.display = 'inline-flex';
+
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            if (previewImage) {
+                previewImage.src = ev.target.result;
+                previewImage.style.display = 'block';
+            }
+            if (previewPlaceholder) previewPlaceholder.style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+    });
+
+    // Clear button functionality - redirect to fresh transform page
+    clearBtn?.addEventListener('click', () => {
+        window.location.href = '/transform';
+    });
+
+    // Age transform form - AJAX submission
+    ageTransformForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const formData = new FormData(ageTransformForm);
+        const transformBtn = document.getElementById('transformBtn');
+        
+        if (!transformBtn) return;
+        
+        const originalBtnHTML = transformBtn.innerHTML;
+        
+        // Show loading state (no animation - using text only)
+        transformBtn.disabled = true;
+        transformBtn.innerHTML = '⏳ Processing...';
+        
+        try {
+            const response = await fetch('/transform', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const html = await response.text();
+            
+            // Parse the response to extract the transformed image URL
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            // Extract transformed image from the response
+            const resultFrame = document.querySelector('.image-section .image-card:last-child .image-frame');
+            const responseResultFrame = doc.querySelector('.image-section .image-card:last-child .image-frame');
+            
+            if (resultFrame && responseResultFrame) {
+                resultFrame.innerHTML = responseResultFrame.innerHTML;
+            }
+            
+            // Check for any error messages
+            const errorAlert = doc.querySelector('.alert-card');
+            if (errorAlert) {
+                const existingAlert = document.querySelector('.alert-card');
+                if (existingAlert) {
+                    existingAlert.remove();
+                }
+                const resultsSection = document.querySelector('.results-section');
+                if (resultsSection) {
+                    resultsSection.insertAdjacentHTML('beforebegin', errorAlert.outerHTML);
+                }
+            }
+            
+            // Restore button state after successful completion
+            transformBtn.disabled = false;
+            transformBtn.innerHTML = originalBtnHTML;
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to transform image. Please try again.');
+            
+            // Restore button state after error
+            transformBtn.disabled = false;
+            transformBtn.innerHTML = originalBtnHTML;
+        }
+    });
+
+</script>
+{% endblock %}

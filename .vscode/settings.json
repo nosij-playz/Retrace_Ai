@@ -1,0 +1,5 @@
+{
+  "python.analysis.updateImportsOnFileMove.enabled": "true",
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "javascript.updateImportsOnFileMove.enabled": "always"
+}
