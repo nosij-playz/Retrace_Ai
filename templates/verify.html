@@ -897,7 +897,7 @@
                         {% set q2_raw_pct = (result.quality_info.q2 * 100) %}
                         {% set q2_display = result.quality_info.q2_display %}
                         <div class="metric-value">{{ "%.1f"|format(q2_display if q2_display is not none and q2_display < q2_raw_pct else q2_raw_pct) }}</div>
-                        <div class="metric-label">Adult 2 Features Quality</div>
+                        <div class="metric-label">Adult Features Quality</div>
                         <div class="metric-description">{{ result.quality_info.img2_age_hint }}</div>
                     </div>
                     {% endif %}
